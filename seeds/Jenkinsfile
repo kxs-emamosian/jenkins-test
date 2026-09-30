@@ -1,0 +1,19 @@
+// seed/Jenkinsfile
+pipeline {
+    agent { label 'built-in' }
+    triggers { cron('H/30 * * * *') }
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Generate jobs') {
+            steps {
+                jobDsl targets: 'seed/jobs.groovy',
+                       removedJobAction: 'DELETE',
+                       removedViewAction: 'DELETE',
+                       lookupStrategy: 'SEED_JOB',
+                       sandbox: true
+            }
+        }
+    }
+}
