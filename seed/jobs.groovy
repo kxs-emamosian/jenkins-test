@@ -2,6 +2,8 @@
 final REPO_OWNER = 'kxs-emamosian'
 final REPO_NAME  = 'jenkins-test'
 
+folder('projects')
+
 readFileFromWorkspace('pipeline-paths.txt')
     .readLines()
     .findAll { it.trim() }
