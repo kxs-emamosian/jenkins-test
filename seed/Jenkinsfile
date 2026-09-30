@@ -3,14 +3,25 @@ pipeline {
     agent { label 'built-in' }
     triggers { cron('H/30 * * * *') }
     stages {
-        stage('Checkout') {
-            steps { checkout scm }
+        stage('Discover pipelines') {
+            steps {
+                sh '''
+                  set -eu
+                  : > pipeline-paths.txt
+                  for b in $(git ls-remote --heads origin | sed 's|.*refs/heads/||'); do
+                    git ls-tree -r --name-only "origin/$b" \
+                      | grep -E '^projects/[^/]+/pipelines/[^/]+/Jenkinsfile$' \
+                      >> pipeline-paths.txt || true
+                  done
+                  sort -u pipeline-paths.txt -o pipeline-paths.txt
+                  cat pipeline-paths.txt
+                '''
+            }
         }
         stage('Generate jobs') {
             steps {
                 jobDsl targets: 'seed/jobs.groovy',
-                       removedJobAction: 'DELETE',
-                       removedViewAction: 'DELETE',
+                       removedJobAction: 'IGNORE',
                        lookupStrategy: 'SEED_JOB',
                        sandbox: false
             }
